@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Environment variables (never commit secrets)
+.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor folders
+.vscode/
+.idea/
+
+# Build / coverage output (added later)
+dist/
+coverage/
+/src/generated/prisma
+
+node_modules
+.env
+logs
+*.log
+.DS_Store
+backend/node_modules
+frontend/node_modules

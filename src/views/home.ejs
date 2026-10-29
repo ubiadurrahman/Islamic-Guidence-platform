@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= pageTitle %></title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1><%= pageTitle %></h1>
+      <p class="lead">
+        Welcome. This is a temporary EJS view. Once the REST API is stable,
+        the frontend will be rebuilt in React, TypeScript, and Tailwind CSS.
+      </p>
+
+      <p>
+        Backend status: <a href="/health">check /health</a>
+      </p>
+
+      <footer>
+        <small>Stage 1 – Initial Express setup</small>
+      </footer>
+    </main>
+  </body>
+</html>

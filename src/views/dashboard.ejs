@@ -1,0 +1,27 @@
+<%- include('partials/header', { title }) %>
+
+<section class="dashboard">
+  <h1>Dashboard</h1>
+  <p id="welcome" class="welcome"></p>
+  <p id="loading" class="muted">Loading…</p>
+
+  <div id="dashboard-links" class="card-grid" hidden>
+    <a class="card" href="/app/ask">
+      <h2>Ask a question</h2>
+      <p>Submit a question for a scholar to review.</p>
+    </a>
+    <a class="card" href="/app/my-questions">
+      <h2>My questions</h2>
+      <p>See status and answers for your submissions.</p>
+    </a>
+    <a class="card" id="scholar-card" href="/scholar" hidden>
+      <h2>Scholar queue</h2>
+      <p>Review pending questions and publish answers.</p>
+    </a>
+  </div>
+
+  <p id="page-error" class="form-error" role="alert" hidden></p>
+</section>
+
+<script src="/js/dashboard.js"></script>
+<%- include('partials/footer') %>

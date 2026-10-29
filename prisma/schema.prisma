@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  SCHOLAR
+  ADMIN
+}
+
+enum QuestionStatus {
+  PENDING
+  UNDER_REVIEW
+  NEEDS_CLARIFICATION
+  ANSWERED
+  CLOSED
+}
+
+model User {
+  id                Int        @id @default(autoincrement())
+  email             String     @unique
+  passwordHash      String
+  fullName          String
+  role              Role       @default(USER)
+  isActive          Boolean    @default(true)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  questions         Question[]
+  reviewedQuestions Question[] @relation("ScholarReviewer")
+  answers           Answer[]
+
+  @@map("users")
+}
+
+model Question {
+  id                Int            @id @default(autoincrement())
+  authorId          Int
+  title             String
+  body              String
+  status            QuestionStatus @default(PENDING)
+  clarificationNote String?
+  scholarId         Int?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  author            User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  scholar           User?          @relation("ScholarReviewer", fields: [scholarId], references: [id], onDelete: SetNull)
+  answer            Answer?
+
+  @@index([authorId])
+  @@index([status])
+  @@index([scholarId])
+  @@map("questions")
+}
+model Answer {
+  id         Int      @id @default(autoincrement())
+  questionId Int      @unique
+  scholarId  Int
+  body       String
+  references Json     @default("[]")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  scholar    User     @relation(fields: [scholarId], references: [id], onDelete: Restrict)
+
+  @@index([scholarId])
+  @@map("answers")
+}

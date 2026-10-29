@@ -1,0 +1,22 @@
+<%- include('partials/header', { title }) %>
+
+<section class="auth-card">
+  <h1>Log in</h1>
+  <form id="login-form" novalidate>
+    <label>
+      Email
+      <input type="email" name="email" id="email" required maxlength="255" />
+    </label>
+    <label>
+      Password
+      <input type="password" name="password" id="password" required minlength="8" maxlength="128" />
+    </label>
+
+    <button type="submit" id="submit-btn">Log in</button>
+    <p id="form-error" class="form-error" role="alert" hidden></p>
+  </form>
+  <p>No account? <a href="/register">Register</a></p>
+</section>
+
+<script src="/js/login.js"></script>
+<%- include('partials/footer') %>
