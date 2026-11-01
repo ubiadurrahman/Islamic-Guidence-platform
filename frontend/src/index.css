@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Islamic Guidance & Knowledge Platform — Theme foundation
+   ============================================================
+   Design decisions:
+   - Semantic colour names ("surface", "accent", "muted") rather than
+     hues ("gray100", "blue500"). Components use bg-surface, text-text,
+     border-border etc., and switch theme automatically.
+   - All colours pass WCAG AA against their theme's background when
+     used as text.
+   - Warm-toned palette (not blue-grey): calmer for a scholarly site.
+   - Accent is forest green — scholarly, warm, distinct from
+     danger (red) and warning (amber) in the same UI.
+   - Theme transition is colour-only (never width/height/top/left),
+     disabled under prefers-reduced-motion.
+   ============================================================ */
+
+/* ---- Light theme values ---- */
+:root {
+  /* Naming: --app-* holds values; @theme below re-exports them as
+     --color-* so Tailwind generates bg-bg, text-text, etc.
+     This indirection avoids a circular reference in Tailwind v4
+     (@theme and :root share the CSS variable namespace). */
+
+  --app-bg: #faf8f4;              /* warm off-white page background */
+  --app-surface: #ffffff;         /* cards, inputs, elevated surfaces */
+  --app-text: #1a1a1a;            /* primary text — AAA on --app-bg */
+  --app-muted: #5a5a5a;           /* secondary text — AA on --app-bg */
+  --app-border: #e2ddd3;          /* subtle warm borders */
+  --app-accent: #1f6f4a;          /* primary action / links — AA on --app-bg */
+  --app-accent-hover: #165236;    /* darker on hover / active */
+  --app-danger: #a01313;          /* destructive actions, error text */
+  --app-warning: #8a5a00;         /* caution text */
+  --app-success: #1a6b3a;         /* success messages */
+
+  --app-radius: 0.5rem;           /* 8px — modern, not pill-shaped */
+  --app-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --app-font-serif: Georgia, "Times New Roman", serif;
+}
+
+/* ---- Dark theme values ---- */
+/* Applied via .dark class on <html>. ThemeContext adds/removes
+   this class based on user choice + OS preference. */
+.dark {
+  --app-bg: #14140f;              /* warm near-black */
+  --app-surface: #1e1e18;         /* slightly lighter than bg */
+  --app-text: #f0ebe0;            /* warm off-white — AAA on --app-bg */
+  --app-muted: #a8a49b;           /* secondary text — AA on --app-bg */
+  --app-border: #353530;          /* visible but subtle */
+  --app-accent: #5db88f;          /* lighter green for dark bg — AA on --app-bg */
+  --app-accent-hover: #7cc9a5;    /* lighter on hover */
+  --app-danger: #f28b8b;
+  --app-warning: #e0b158;
+  --app-success: #7bc99a;         /* slightly bluer than accent to distinguish */
+}
+
+/* ---- Tailwind v4: expose theme values as utility classes ---- */
+/* This block makes `bg-bg`, `bg-surface`, `text-text`, `border-border`,
+   `bg-accent`, `text-danger`, `rounded-base`, `font-sans` etc. work. */
+@theme {
+  --color-bg: var(--app-bg);
+  --color-surface: var(--app-surface);
+  --color-text: var(--app-text);
+  --color-muted: var(--app-muted);
+  --color-border: var(--app-border);
+  --color-accent: var(--app-accent);
+  --color-accent-hover: var(--app-accent-hover);
+  --color-danger: var(--app-danger);
+  --color-warning: var(--app-warning);
+  --color-success: var(--app-success);
+
+  --radius-base: var(--app-radius);
+
+  --font-family-sans: var(--app-font-sans);
+  --font-family-serif: var(--app-font-serif);
+}
+
+/* ============================================================
+   Global base styles
+   ============================================================ */
+
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: var(--app-font-sans);
+  background-color: var(--app-bg);
+  color: var(--app-text);
+  /* Theme switch is smooth, not a hard cut. Colour-only — no layout. */
+  transition:
+    background-color 250ms ease-out,
+    color 250ms ease-out,
+    border-color 250ms ease-out;
+}
+
+/* Apply colour transitions to all elements so theme toggles feel
+   cohesive. Deliberately scoped to colour-ish properties only —
+   NEVER transition width/height/top/left (they cause layout thrash). */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, box-shadow, opacity;
+  transition-duration: 200ms;
+  transition-timing-function: ease-out;
+}
+
+/* NON-NEGOTIABLE (HCI / accessibility):
+   Users who prefer reduced motion get near-instant theme switches.
+   Overrides every transition/animation in the app. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+}

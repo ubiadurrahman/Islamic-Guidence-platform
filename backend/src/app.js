@@ -5,6 +5,8 @@
  */
 import path from 'node:path';
 import express from 'express';
+import cors from 'cors';
+import { frontendOrigin } from './config/env.js';
 
 // Routers
 import homeRouter from './routes/home.routes.js';
@@ -24,6 +26,21 @@ app.set('views', path.join(import.meta.dirname, 'views'));
 // ---------- Static files ----------
 // Requests to /css/..., /js/..., /images/... are served from public/
 app.use(express.static(path.join(import.meta.dirname, '..', 'public')));
+
+// ---------- CORS ----------
+// Allow the React dev server (a different origin) to call the API directly.
+// The Vite proxy is also in place for /api/* during dev, so CORS is a safety
+// net (and the production-relevant path). We whitelist EXACTLY one origin —
+// no wildcards, no `true`. When we move to httpOnly cookies (a later stage),
+// `credentials` must become true AND CSRF protection must be added.
+app.use(
+    cors({
+        origin: frontendOrigin,
+        credentials: false,
+        methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+    })
+);
 
 // ---------- Body parsers ----------
 // Parse URL-encoded form submissions and JSON (for future API clients like React)

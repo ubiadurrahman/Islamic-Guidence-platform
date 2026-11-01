@@ -24,3 +24,5 @@ export const port = Number(process.env.PORT);
 export const nodeEnv = process.env.NODE_ENV || 'development';
 export const jwtSecret = process.env.JWT_SECRET;
 export const jwtExpiresIn = process.env.JWT_EXPIRES_IN || '7d';
+export const frontendOrigin =
+  process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
