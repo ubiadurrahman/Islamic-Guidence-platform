@@ -9,6 +9,30 @@
       name="description"
       content="Islamic Guidance and Knowledge Platform — ask questions, receive reviewed answers from scholars."
     />
+        <!--
+      Pre-hydration theme script. Runs synchronously BEFORE React and BEFORE
+      first paint, so dark-mode users never see a flash of light theme.
+      Logic must stay IDENTICAL to ThemeContext.jsx. If you change one,
+      change both.
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var theme =
+            stored === 'light' || stored === 'dark'
+              ? stored
+              : 'system';
+          var prefersDark =
+            window.matchMedia &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var isDark = theme === 'dark' || (theme === 'system' && prefersDark);
+          if (isDark) document.documentElement.classList.add('dark');
+        } catch (_) {
+          /* localStorage blocked (private mode etc.) — fall back to light */
+        }
+      })();
+    </script>
     <title>Islamic Guidance &amp; Knowledge</title>
   </head>
   <body>
