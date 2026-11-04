@@ -1,6 +1,7 @@
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
+import Button from '../ui/Button.jsx';
 
 // Navbar — top-level site navigation.
 //
@@ -10,9 +11,9 @@ import { useAuth } from '../../context/AuthContext.jsx';
 //   system → half-circle (auto)
 //
 // Auth section (right side): when logged in, shows the user's name and a
-// logout button. In R2, useAuth() returns { user: null } so it shows the
-// logged-out links. R3 fills in real auth and this code will start working
-// without changes.
+// logout button. Logging out clears the session via AuthContext.logout()
+// and navigates to '/' so the user lands on the public home page and the
+// back button doesn't return to a protected page.
 
 const THEME_LABELS = {
   light: 'Light',
@@ -60,10 +61,16 @@ const ICONS = {
 
 export default function Navbar() {
   const { theme, setTheme } = useTheme();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const Icon = ICONS[theme] || ICONS.system;
   const nextTheme = NEXT_THEME[theme] || 'light';
+
+  function handleLogout() {
+    logout();
+    navigate('/', { replace: true });
+  }
 
   return (
     <header className="border-b border-border bg-surface">
@@ -84,6 +91,9 @@ export default function Navbar() {
                 Dashboard
               </NavLink>
               <span className="text-sm text-muted">{user.fullName}</span>
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
+                Log out
+              </Button>
             </>
           ) : (
             <>

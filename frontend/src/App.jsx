@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react';
 import { createBrowserRouter, RouterProvider, Outlet, Link } from 'react-router-dom';
 import Navbar from './components/layout/Navbar.jsx';
 import KitchenSinkPage from './pages/KitchenSinkPage.jsx';
+import { AuthProvider } from './context/AuthContext.jsx';
+import ProtectedRoute from './routes/ProtectedRoute.jsx';
+import LoginPage from './pages/LoginPage.jsx';
+import RegisterPage from './pages/RegisterPage.jsx';
+import DashboardPage from './pages/DashboardPage.jsx';
 
 // HealthCheckPage — proven working from R1. Kept here for regression checks.
 function HealthCheckPage() {
@@ -98,10 +103,19 @@ function Layout() {
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Layout />,
+    element: <AuthProvider><Layout /></AuthProvider>,
     children: [
       { index: true, element: <HealthCheckPage /> },
       { path: 'kitchen-sink', element: <KitchenSinkPage /> },
+
+      // Public auth pages — no guard
+      { path: 'login', element: <LoginPage /> },
+      { path: 'register', element: <RegisterPage /> },
+
+      // Protected pages — wrapped in guard
+      { path: 'dashboard', element: <ProtectedRoute><DashboardPage /></ProtectedRoute> },
+
+      // (R4/R5 add: /ask, /my-questions, /questions/:id, /scholar — all protected)
     ],
   },
 ]);
