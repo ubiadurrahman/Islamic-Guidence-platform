@@ -6,36 +6,7 @@ import Badge from '../components/ui/Badge.jsx';
 import Alert from '../components/ui/Alert.jsx';
 import Button from '../components/ui/Button.jsx';
 import Spinner from '../components/ui/Spinner.jsx';
-
-// Human-readable labels for QuestionStatus enum values.
-const STATUS_LABELS = {
-  PENDING: 'Pending',
-  UNDER_REVIEW: 'Under review',
-  NEEDS_CLARIFICATION: 'Needs clarification',
-  ANSWERED: 'Answered',
-  CLOSED: 'Closed',
-};
-
-// Badge variant per status — matches the intent documented in Badge.jsx.
-const STATUS_BADGE_VARIANT = {
-  PENDING: 'default',
-  UNDER_REVIEW: 'info',
-  NEEDS_CLARIFICATION: 'warning',
-  ANSWERED: 'success',
-  CLOSED: 'default',
-};
-
-function formatDate(iso) {
-  try {
-    return new Date(iso).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  } catch {
-    return iso;
-  }
-}
+import { STATUS_LABELS, STATUS_BADGE_VARIANT, formatDate } from '../utils/question-display.js';
 
 export default function MyQuestionsPage() {
   const [questions, setQuestions] = useState([]);

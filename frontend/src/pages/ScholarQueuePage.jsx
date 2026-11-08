@@ -8,39 +8,12 @@ import Button from '../components/ui/Button.jsx';
 import Alert from '../components/ui/Alert.jsx';
 import Spinner from '../components/ui/Spinner.jsx';
 import Textarea from '../components/ui/Textarea.jsx';
+import { STATUS_LABELS, STATUS_BADGE_VARIANT, formatDate } from '../utils/question-display.js';
 
-// Status labels / variants — duplicated from MyQuestionsPage.jsx.
-// Third duplication will be in R5.3's QuestionDetailPage; at that point
-// we extract to a shared module. Two now, so no extraction yet (rule 4).
-const STATUS_LABELS = {
-  PENDING: 'Pending',
-  UNDER_REVIEW: 'Under review',
-  NEEDS_CLARIFICATION: 'Needs clarification',
-  ANSWERED: 'Answered',
-  CLOSED: 'Closed',
-};
-
-const STATUS_BADGE_VARIANT = {
-  PENDING: 'default',
-  UNDER_REVIEW: 'info',
-  NEEDS_CLARIFICATION: 'warning',
-  ANSWERED: 'success',
-  CLOSED: 'default',
-};
 
 // Mirrors the backend: body('body').trim().isLength({ min: 20, max: 10000 })
 const ANSWER_MIN = 20;
 const ANSWER_MAX = 10000;
-
-function formatDate(iso) {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
 
 function QuestionCard({
   question,
