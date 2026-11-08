@@ -7,6 +7,7 @@ import Badge from '../components/ui/Badge.jsx';
 import Button from '../components/ui/Button.jsx';
 import Alert from '../components/ui/Alert.jsx';
 import Spinner from '../components/ui/Spinner.jsx';
+import Textarea from '../components/ui/Textarea.jsx';
 
 // Status labels / variants — duplicated from MyQuestionsPage.jsx.
 // Third duplication will be in R5.3's QuestionDetailPage; at that point
@@ -27,6 +28,10 @@ const STATUS_BADGE_VARIANT = {
   CLOSED: 'default',
 };
 
+// Mirrors the backend: body('body').trim().isLength({ min: 20, max: 10000 })
+const ANSWER_MIN = 20;
+const ANSWER_MAX = 10000;
+
 function formatDate(iso) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
@@ -45,6 +50,14 @@ function QuestionCard({
   onPickUp,
   pickingUp,
   anyPickingUp,
+  answerFormOpen,
+  answerBody,
+  answerFieldErrors,
+  submittingAnswer,
+  onOpenAnswer,
+  onAnswerBodyChange,
+  onSubmitAnswer,
+  onCancelAnswer,
 }) {
   const isOwnQuestion = question.author.id === currentUserId;
   const isAssignedToMe = question.scholar?.id === currentUserId;
@@ -53,37 +66,27 @@ function QuestionCard({
   const canPickUp =
     question.status === 'PENDING' && !question.scholar && !isOwnQuestion;
 
+  const canAnswer =
+    isAssignedToMe &&
+    (question.status === 'UNDER_REVIEW' || question.status === 'NEEDS_CLARIFICATION');
+
   const shouldTruncate = question.body.length > 200;
 
-  let actionContent;
-  if (canPickUp) {
-    actionContent = (
-      <Button
-        variant="primary"
-        size="sm"
-        onClick={() => onPickUp(question.id)}
-        loading={pickingUp}
-        disabled={anyPickingUp && !pickingUp}
-      >
-        Pick up
-      </Button>
-    );
-  } else if (isOwnQuestion && question.status === 'PENDING') {
-    actionContent = <span className="text-xs text-muted">Your own question</span>;
-  } else if (isAssignedToMe) {
-    actionContent = <span className="text-xs text-muted">Picked up by you</span>;
+  // Human-readable status line, distinct from the badge.
+  let statusText = null;
+  if (isOwnQuestion && question.status === 'PENDING') {
+    statusText = 'Your own question';
+  } else if (question.status === 'ANSWERED' && isAssignedToMe) {
+    statusText = 'Answered by you';
+  } else if (
+    isAssignedToMe &&
+    (question.status === 'UNDER_REVIEW' || question.status === 'NEEDS_CLARIFICATION')
+  ) {
+    statusText = 'Picked up by you';
   } else if (isAssignedToOther) {
-    actionContent = (
-      <span className="text-xs text-muted">
-        Picked up by {question.scholar.fullName}
-      </span>
-    );
+    statusText = `Picked up by ${question.scholar.fullName}`;
   } else {
-    actionContent = (
-      <span className="text-xs text-muted">
-        {STATUS_LABELS[question.status] || question.status}
-      </span>
-    );
+    statusText = STATUS_LABELS[question.status] || question.status;
   }
 
   return (
@@ -93,17 +96,13 @@ function QuestionCard({
           {STATUS_LABELS[question.status] || question.status}
         </Badge>
         <span className="text-xs text-muted">by {question.author.fullName}</span>
-        <span className="text-xs text-muted" aria-hidden="true">
-          ·
-        </span>
+        <span className="text-xs text-muted" aria-hidden="true">·</span>
         <time dateTime={question.createdAt} className="text-xs text-muted">
           {formatDate(question.createdAt)}
         </time>
         {question.scholar && (
           <>
-            <span className="text-xs text-muted" aria-hidden="true">
-              ·
-            </span>
+            <span className="text-xs text-muted" aria-hidden="true">·</span>
             <span className="text-xs text-muted">
               Assigned: {question.scholar.fullName}
             </span>
@@ -133,7 +132,84 @@ function QuestionCard({
         </button>
       )}
 
-      <div className="mt-4 flex items-center justify-end">{actionContent}</div>
+      {question.status === 'NEEDS_CLARIFICATION' && question.clarificationNote && (
+        <div className="mt-3 rounded-base border border-warning bg-bg p-3 text-sm text-text">
+          <p className="text-xs font-semibold text-warning">
+            Your clarification request
+          </p>
+          <p className="mt-1 whitespace-pre-wrap">{question.clarificationNote}</p>
+        </div>
+      )}
+
+      {question.status === 'ANSWERED' && question.answer && (
+        <div className="mt-3 rounded-base border-l-4 border-success bg-bg p-3 text-sm text-text">
+          <p className="text-xs font-semibold text-success">Published answer</p>
+          <p className="mt-1 whitespace-pre-wrap">{question.answer.body}</p>
+        </div>
+      )}
+
+      {answerFormOpen ? (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            onSubmitAnswer();
+          }}
+          noValidate
+          className="mt-4 flex flex-col gap-3 border-t border-border pt-4"
+        >
+          <Textarea
+            label="Your answer"
+            required
+            rows={6}
+            maxLength={ANSWER_MAX}
+            showCount
+            value={answerBody}
+            onChange={(e) => onAnswerBodyChange(e.target.value)}
+            error={answerFieldErrors.body}
+            hint={`${ANSWER_MIN}–${ANSWER_MAX} characters`}
+            autoFocus
+          />
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onCancelAnswer}
+              disabled={submittingAnswer}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" size="sm" loading={submittingAnswer}>
+              Publish answer
+            </Button>
+          </div>
+        </form>
+      ) : (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <span className="text-xs text-muted">{statusText}</span>
+          <div className="flex gap-2">
+            {canPickUp && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => onPickUp(question.id)}
+                loading={pickingUp}
+                disabled={anyPickingUp && !pickingUp}
+              >
+                Pick up
+              </Button>
+            )}
+            {canAnswer && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={onOpenAnswer}
+              >
+                Answer
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
@@ -148,6 +224,13 @@ export default function ScholarQueuePage() {
   const [expandedIds, setExpandedIds] = useState(() => new Set());
   const [pickingUpId, setPickingUpId] = useState(null);
   const [pickUpError, setPickUpError] = useState('');
+
+  // Answer form state (single form at a time)
+  const [answeringId, setAnsweringId] = useState(null);
+  const [answerBody, setAnswerBody] = useState('');
+  const [answerFieldErrors, setAnswerFieldErrors] = useState({});
+  const [answerError, setAnswerError] = useState('');
+  const [submittingAnswer, setSubmittingAnswer] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -194,18 +277,26 @@ export default function ScholarQueuePage() {
   }, [filter, retryToken]);
 
   // Hooks above; safe non-hook early exit below.
-  // ProtectedRoute/RoleRoute guarantee `user`, so this is defence-in-depth.
   if (!user) return null;
+
+  function resetAnswerForm() {
+    setAnsweringId(null);
+    setAnswerBody('');
+    setAnswerFieldErrors({});
+    setAnswerError('');
+  }
 
   function handleFilterChange(next) {
     if (next === filter) return;
     setFilter(next);
     setExpandedIds(new Set());
     setPickUpError('');
+    resetAnswerForm();
   }
 
   function handleRetry() {
     setPickUpError('');
+    resetAnswerForm();
     setRetryToken((t) => t + 1);
   }
 
@@ -242,6 +333,69 @@ export default function ScholarQueuePage() {
       }
     } finally {
       setPickingUpId(null);
+    }
+  }
+
+  function handleOpenAnswer(questionId) {
+    if (answeringId === questionId) return;
+    setAnsweringId(questionId);
+    setAnswerBody('');
+    setAnswerFieldErrors({});
+    setAnswerError('');
+  }
+
+  function handleCancelAnswer() {
+    resetAnswerForm();
+  }
+
+  async function handleSubmitAnswer() {
+    if (answeringId === null) return;
+
+    setAnswerError('');
+    setAnswerFieldErrors({});
+
+    const trimmed = answerBody.trim();
+    if (!trimmed) {
+      setAnswerFieldErrors({ body: 'Answer body is required.' });
+      return;
+    }
+    if (trimmed.length < ANSWER_MIN || trimmed.length > ANSWER_MAX) {
+      setAnswerFieldErrors({
+        body: `Answer body must be between ${ANSWER_MIN} and ${ANSWER_MAX} characters.`,
+      });
+      return;
+    }
+
+    setSubmittingAnswer(true);
+    try {
+      await api.post(`/scholar/questions/${answeringId}/answer`, {
+        body: trimmed,
+      });
+      // Success: close form, switch to Mine tab, refetch.
+      resetAnswerForm();
+      setFilter('mine');
+      setRetryToken((t) => t + 1);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) return;
+
+      if (err instanceof ApiError && err.status === 422 && err.fields) {
+        setAnswerFieldErrors(err.fields);
+      } else if (err instanceof ApiError && err.status === 409) {
+        // Status changed while we were composing — form closes, list refetches.
+        resetAnswerForm();
+        setAnswerError(
+          'Question status changed. The list has been refreshed.'
+        );
+        setRetryToken((t) => t + 1);
+      } else if (err instanceof ApiError) {
+        setAnswerError(err.message || 'Could not publish answer.');
+      } else {
+        setAnswerError(
+          'Could not reach the server. Check your connection and try again.'
+        );
+      }
+    } finally {
+      setSubmittingAnswer(false);
     }
   }
 
@@ -301,6 +455,18 @@ export default function ScholarQueuePage() {
           </Button>
         </div>
 
+        {answerError && (
+          <div className="mb-4">
+            <Alert
+              variant="danger"
+              title="Could not publish answer"
+              onDismiss={() => setAnswerError('')}
+            >
+              {answerError}
+            </Alert>
+          </div>
+        )}
+
         {pickUpError && (
           <div className="mb-4">
             <Alert
@@ -358,6 +524,18 @@ export default function ScholarQueuePage() {
                   onPickUp={handlePickUp}
                   pickingUp={pickingUpId === q.id}
                   anyPickingUp={pickingUpId !== null}
+                  answerFormOpen={answeringId === q.id}
+                  answerBody={answeringId === q.id ? answerBody : ''}
+                  answerFieldErrors={
+                    answeringId === q.id ? answerFieldErrors : {}
+                  }
+                  submittingAnswer={
+                    answeringId === q.id ? submittingAnswer : false
+                  }
+                  onOpenAnswer={() => handleOpenAnswer(q.id)}
+                  onAnswerBodyChange={setAnswerBody}
+                  onSubmitAnswer={handleSubmitAnswer}
+                  onCancelAnswer={handleCancelAnswer}
                 />
               </li>
             ))}
