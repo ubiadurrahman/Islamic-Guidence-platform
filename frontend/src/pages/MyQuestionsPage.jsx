@@ -124,22 +124,26 @@ export default function MyQuestionsPage() {
         {!loading && !error && questions.length > 0 && (
           <ul className="flex flex-col gap-4">
             {questions.map((q) => (
-              <li key={q.id}>
-                <Card title={q.title}>
-                  <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <Badge variant={STATUS_BADGE_VARIANT[q.status] || 'default'}>
-                      {STATUS_LABELS[q.status] || q.status}
-                    </Badge>
-                    <time
-                      dateTime={q.createdAt}
-                      className="text-xs text-muted"
-                    >
-                      {formatDate(q.createdAt)}
-                    </time>
-                  </div>
-                  <p className="whitespace-pre-wrap text-sm text-text">{q.body}</p>
-                </Card>
-              </li>
+             <li key={q.id}>
+  <Link
+    to={`/questions/${q.id}`}
+    className={
+      'block rounded-base ' +
+      'group ' +
+      'focus:outline-none focus-visible:ring-2 focus-visible:ring-accent'
+    }
+  >
+    <Card
+      title={q.title}
+      className="transition-colors group-hover:border-accent"
+    >
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        ...
+      </div>
+      <p className="whitespace-pre-wrap text-sm text-text">{q.body}</p>
+    </Card>
+  </Link>
+</li>
             ))}
           </ul>
         )}

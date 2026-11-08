@@ -11,6 +11,7 @@ import AskQuestionPage from './pages/AskQuestionPage.jsx';
 import MyQuestionsPage from './pages/MyQuestionsPage.jsx';
 import RoleRoute from './routes/RoleRoute.jsx';
 import ScholarQueuePage from './pages/ScholarQueuePage.jsx';
+import QuestionDetailPage from './pages/QuestionDetailPage.jsx';
 
 // HealthCheckPage — proven working from R1. Kept here for regression checks.
 function HealthCheckPage() {
@@ -121,6 +122,7 @@ const router = createBrowserRouter([
       { path: 'ask', element: <ProtectedRoute><AskQuestionPage /></ProtectedRoute> },
       { path: 'my-questions', element: <ProtectedRoute><MyQuestionsPage /></ProtectedRoute> },
       { path: 'scholar', element: <RoleRoute allowedRoles={['SCHOLAR', 'ADMIN']}><ScholarQueuePage /></RoleRoute> },
+      { path: 'questions/:id', element: <ProtectedRoute><QuestionDetailPage /></ProtectedRoute> },
 
       // (R5.2/R5.3 add: /questions/:id, inline answer form on /scholar — all protected)
     ],
