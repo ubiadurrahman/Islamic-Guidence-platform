@@ -8,6 +8,7 @@ import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import AskQuestionPage from './pages/AskQuestionPage.jsx';
+import MyQuestionsPage from './pages/MyQuestionsPage.jsx';
 
 // HealthCheckPage — proven working from R1. Kept here for regression checks.
 function HealthCheckPage() {
@@ -115,10 +116,10 @@ const router = createBrowserRouter([
 
       // Protected pages — wrapped in guard
       { path: 'dashboard', element: <ProtectedRoute><DashboardPage /></ProtectedRoute> },
-
       { path: 'ask', element: <ProtectedRoute><AskQuestionPage /></ProtectedRoute> },
+      { path: 'my-questions', element: <ProtectedRoute><MyQuestionsPage /></ProtectedRoute> },
 
-      // (R4/R5 add: /ask, /my-questions, /questions/:id, /scholar — all protected)
+      // (R4.3/R5 add: /questions/:id, /scholar — all protected)
     ],
   },
 ]);
