@@ -7,6 +7,7 @@ import Badge from '../components/ui/Badge.jsx';
 import Button from '../components/ui/Button.jsx';
 import Alert from '../components/ui/Alert.jsx';
 import Spinner from '../components/ui/Spinner.jsx';
+import Input from '../components/ui/Input.jsx';
 import Textarea from '../components/ui/Textarea.jsx';
 import { STATUS_LABELS, STATUS_BADGE_VARIANT, formatDate } from '../utils/question-display.js';
 
@@ -14,6 +15,14 @@ import { STATUS_LABELS, STATUS_BADGE_VARIANT, formatDate } from '../utils/questi
 // Mirrors the backend: body('body').trim().isLength({ min: 20, max: 10000 })
 const ANSWER_MIN = 20;
 const ANSWER_MAX = 10000;
+
+// Mirrors backend/src/utils/normalizeReferences.js
+const MAX_REFERENCES = 20;
+const REFERENCE_TYPE_OPTIONS = [
+  { value: 'QURAN', label: 'Quran' },
+  { value: 'HADITH', label: 'Hadith' },
+  { value: 'OTHER', label: 'Other' },
+];
 
 function QuestionCard({
   question,
@@ -27,8 +36,12 @@ function QuestionCard({
   answerBody,
   answerFieldErrors,
   submittingAnswer,
+  answerReferences,
   onOpenAnswer,
   onAnswerBodyChange,
+  onAddReference,
+  onRemoveReference,
+  onReferenceChange,
   onSubmitAnswer,
   onCancelAnswer,
 }) {
@@ -142,6 +155,102 @@ function QuestionCard({
             hint={`${ANSWER_MIN}–${ANSWER_MAX} characters`}
             autoFocus
           />
+
+          <fieldset className="flex flex-col gap-3">
+            <legend className="text-sm font-medium text-text">
+              References (optional)
+            </legend>
+
+            {answerReferences.length === 0 ? (
+              <p className="text-xs text-muted">
+                Cite Quran verses, hadith, or other sources. Leave empty if not applicable.
+              </p>
+            ) : (
+              <ol className="flex flex-col gap-3">
+                {answerReferences.map((ref, index) => (
+                  <li
+                    key={ref.id}
+                    className="rounded-base border border-border bg-bg p-3"
+                  >
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-xs font-medium text-muted">
+                        Reference {index + 1}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => onRemoveReference(index)}
+                        className={
+                          'rounded-base text-xs font-medium text-danger ' +
+                          'transition-colors hover:underline ' +
+                          'focus:outline-none focus-visible:ring-2 focus-visible:ring-accent'
+                        }
+                        aria-label={`Remove reference ${index + 1}`}
+                      >
+                        Remove
+                      </button>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label className="flex flex-col gap-1">
+                        <span className="text-xs font-medium text-text">Type</span>
+                        <select
+                          value={ref.type}
+                          onChange={(e) => onReferenceChange(index, 'type', e.target.value)}
+                          className={
+                            'rounded-base border border-border bg-surface px-3 py-2 text-sm text-text ' +
+                            'transition-colors ' +
+                            'focus:outline-none focus-visible:ring-2 focus-visible:ring-accent'
+                          }
+                        >
+                          {REFERENCE_TYPE_OPTIONS.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <Input
+                        label="Citation"
+                        type="text"
+                        value={ref.citation}
+                        onChange={(e) => onReferenceChange(index, 'citation', e.target.value)}
+                        maxLength={200}
+                        hint="e.g. Surah Al-Baqarah 2:255"
+                      />
+
+                      <Input
+                        label="Text (optional)"
+                        type="text"
+                        value={ref.text}
+                        onChange={(e) => onReferenceChange(index, 'text', e.target.value)}
+                        maxLength={2000}
+                        hint="Quote or translation, up to 2000 characters."
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            )}
+
+            <div className="flex items-center gap-3">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={onAddReference}
+                disabled={answerReferences.length >= MAX_REFERENCES || submittingAnswer}
+              >
+                + Add reference
+              </Button>
+              {answerReferences.length > 0 && (
+                <span className="text-xs text-muted">
+                  {answerReferences.length} of {MAX_REFERENCES}
+                </span>
+              )}
+            </div>
+          </fieldset>
+
           <div className="flex justify-end gap-3">
             <Button
               variant="ghost"
@@ -201,6 +310,7 @@ export default function ScholarQueuePage() {
   // Answer form state (single form at a time)
   const [answeringId, setAnsweringId] = useState(null);
   const [answerBody, setAnswerBody] = useState('');
+  const [answerReferences, setAnswerReferences] = useState([]);
   const [answerFieldErrors, setAnswerFieldErrors] = useState({});
   const [answerError, setAnswerError] = useState('');
   const [submittingAnswer, setSubmittingAnswer] = useState(false);
@@ -255,6 +365,7 @@ export default function ScholarQueuePage() {
   function resetAnswerForm() {
     setAnsweringId(null);
     setAnswerBody('');
+    setAnswerReferences([]);
     setAnswerFieldErrors({});
     setAnswerError('');
   }
@@ -313,12 +424,36 @@ export default function ScholarQueuePage() {
     if (answeringId === questionId) return;
     setAnsweringId(questionId);
     setAnswerBody('');
+    setAnswerReferences([]);
     setAnswerFieldErrors({});
     setAnswerError('');
   }
 
   function handleCancelAnswer() {
     resetAnswerForm();
+  }
+
+  function handleAddReference() {
+    if (answerReferences.length >= MAX_REFERENCES) return;
+    setAnswerReferences((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        type: 'QURAN',
+        citation: '',
+        text: '',
+      },
+    ]);
+  }
+
+  function handleRemoveReference(index) {
+    setAnswerReferences((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function handleReferenceChange(index, field, value) {
+    setAnswerReferences((prev) =>
+      prev.map((ref, i) => (i === index ? { ...ref, [field]: value } : ref))
+    );
   }
 
   async function handleSubmitAnswer() {
@@ -339,11 +474,28 @@ export default function ScholarQueuePage() {
       return;
     }
 
+    // Blank citations are dropped silently — a scholar may add a row and
+    // change their mind. Rows surviving this map carry only backend-allowed
+    // fields (no local `id`).
+    const preparedReferences = answerReferences
+      .map((ref) => {
+        const citation = ref.citation.trim();
+        if (!citation) return null;
+        const text = ref.text.trim();
+        return text
+          ? { type: ref.type, citation, text }
+          : { type: ref.type, citation };
+      })
+      .filter(Boolean);
+
+    const payload = { body: trimmed };
+    if (preparedReferences.length > 0) {
+      payload.references = preparedReferences;
+    }
+
     setSubmittingAnswer(true);
     try {
-      await api.post(`/scholar/questions/${answeringId}/answer`, {
-        body: trimmed,
-      });
+      await api.post(`/scholar/questions/${answeringId}/answer`, payload);
       // Success: close form, switch to Mine tab, refetch.
       resetAnswerForm();
       setFilter('mine');
@@ -499,6 +651,7 @@ export default function ScholarQueuePage() {
                   anyPickingUp={pickingUpId !== null}
                   answerFormOpen={answeringId === q.id}
                   answerBody={answeringId === q.id ? answerBody : ''}
+                  answerReferences={answeringId === q.id ? answerReferences : []}
                   answerFieldErrors={
                     answeringId === q.id ? answerFieldErrors : {}
                   }
@@ -507,6 +660,9 @@ export default function ScholarQueuePage() {
                   }
                   onOpenAnswer={() => handleOpenAnswer(q.id)}
                   onAnswerBodyChange={setAnswerBody}
+                  onAddReference={handleAddReference}
+                  onRemoveReference={handleRemoveReference}
+                  onReferenceChange={handleReferenceChange}
                   onSubmitAnswer={handleSubmitAnswer}
                   onCancelAnswer={handleCancelAnswer}
                 />

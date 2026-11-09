@@ -12,6 +12,14 @@ import {
   formatDate,
 } from '../utils/question-display.js';
 
+// Display labels for the structured reference types returned by the backend.
+// Values match backend/src/utils/normalizeReferences.js: QURAN | HADITH | OTHER.
+const REFERENCE_TYPE_LABELS = {
+  QURAN: 'Quran',
+  HADITH: 'Hadith',
+  OTHER: 'Other',
+};
+
 // QuestionDetailPage — full view of one question the user owns.
 //
 // Fetch strategy (decision 1):
@@ -229,6 +237,28 @@ export default function QuestionDetailPage() {
                     <p className="whitespace-pre-wrap text-sm text-text">
                       {answer.body}
                     </p>
+
+                    {Array.isArray(answer.references) && answer.references.length > 0 && (
+                      <div className="mt-4 border-t border-border pt-4">
+                        <p className="text-xs font-semibold text-muted">References</p>
+                        <ol className="mt-2 list-decimal space-y-2 pl-5 text-sm text-text">
+                          {answer.references.map((ref, index) => (
+                            <li key={index}>
+                              <span className="font-medium">
+                                {REFERENCE_TYPE_LABELS[ref.type] || ref.type}:
+                              </span>{' '}
+                              {ref.citation}
+                              {ref.text && (
+                                <p className="mt-1 whitespace-pre-wrap text-xs text-muted">
+                                  {ref.text}
+                                </p>
+                              )}
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
+
                     <p className="mt-3 text-xs text-muted">
                       Answered by {answer.scholar.fullName} ·{' '}
                       {formatDate(answer.createdAt)}
