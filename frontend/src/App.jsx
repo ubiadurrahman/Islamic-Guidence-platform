@@ -12,6 +12,8 @@ import MyQuestionsPage from './pages/MyQuestionsPage.jsx';
 import RoleRoute from './routes/RoleRoute.jsx';
 import ScholarQueuePage from './pages/ScholarQueuePage.jsx';
 import QuestionDetailPage from './pages/QuestionDetailPage.jsx';
+import ErrorPage from './pages/ErrorPage.jsx';
+import NotFoundPage from './pages/NotFoundPage.jsx';
 
 // HealthCheckPage — proven working from R1. Kept here for regression checks.
 function HealthCheckPage() {
@@ -109,6 +111,7 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <AuthProvider><Layout /></AuthProvider>,
+    errorElement: <ErrorPage />,
     children: [
       { index: true, element: <HealthCheckPage /> },
       { path: 'kitchen-sink', element: <KitchenSinkPage /> },
@@ -124,7 +127,8 @@ const router = createBrowserRouter([
       { path: 'scholar', element: <RoleRoute allowedRoles={['SCHOLAR', 'ADMIN']}><ScholarQueuePage /></RoleRoute> },
       { path: 'questions/:id', element: <ProtectedRoute><QuestionDetailPage /></ProtectedRoute> },
 
-      // (R5.2/R5.3 add: /questions/:id, inline answer form on /scholar — all protected)
+      // Catch-all — last so it's the lowest-priority match
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
 ]);
