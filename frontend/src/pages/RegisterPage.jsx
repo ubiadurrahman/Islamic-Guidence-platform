@@ -116,27 +116,27 @@ export default function RegisterPage() {
                 required
               />
 
-              <div className="relative">
-                <Input
-                  label="Password"
-                  type={showPassword ? 'text' : 'password'}
-                  id="password"
-                  autoComplete="new-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  error={fieldErrors.password}
-                  hint="At least 8 characters."
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-8 text-xs text-muted transition-colors hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? 'Hide' : 'Show'}
-                </button>
-              </div>
+              <Input
+                label="Password"
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                error={fieldErrors.password}
+                hint="At least 8 characters."
+                required
+                rightAdornment={
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="text-xs text-muted transition-colors hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? 'Hide' : 'Show'}
+                  </button>
+                }
+              />
 
               <Button type="submit" loading={submitting} disabled={submitting}>
                 {submitting ? 'Creating account…' : 'Create account'}
