@@ -17,7 +17,7 @@ export default function Card({ title, footer, className = '', children, ...rest 
     >
       {title && (
         <div className="border-b border-border px-4 py-3">
-          <h3 className="text-sm font-semibold text-text">{title}</h3>
+          <h2 className="text-sm font-semibold text-text">{title}</h2>
         </div>
       )}
       <div className="px-4 py-4">{children}</div>
